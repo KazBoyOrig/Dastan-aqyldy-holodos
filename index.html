@@ -20,6 +20,7 @@
     --camera-transition: 1s;
     --poster-color: transparent;
   }
+  body:has(#scheme-panel:not([hidden])) model-viewer { --min-hotspot-opacity: .85; }
   #components {
     position: absolute;
     top: 10px;
@@ -94,6 +95,47 @@
   .stepper { display: flex; gap: 8px; align-items: center; }
   .stepper button, .dialog-head button { cursor: pointer; }
   .stepper button { min-width: 27px; }
+  #schemes { margin-top: 10px; padding-top: 8px; border-top: 1px solid #ccc; }
+  #schemes h2, #scheme-panel h2 { margin: 0; font-size: 14px; }
+  #scheme-panel {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    box-sizing: border-box;
+    width: 245px;
+    max-height: calc(100% - 20px);
+    overflow: auto;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+    font-size: 13px;
+  }
+  #scheme-panel header { display: flex; justify-content: space-between; align-items: start; gap: 6px; }
+  #close-scheme { border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0; cursor: pointer; }
+  #scheme-panel p { margin: 8px 0; }
+  #scheme-flow { list-style: none; padding: 0; margin: 8px 0; }
+  #scheme-flow li { padding: 7px; border-radius: 5px; background: #e9f3ff; line-height: 1.3; }
+  #scheme-flow li + li { margin-top: 15px; position: relative; }
+  #scheme-flow li + li::before { content: '↓'; position: absolute; top: -17px; left: 12px; color: #174d90; }
+  #scheme-flow strong { display: block; color: #143d70; margin-bottom: 2px; }
+  .scheme-marker {
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #2059ab;
+    color: #fff;
+    box-shadow: 0 1px 5px #1238;
+    font: bold 13px Arial, sans-serif;
+    pointer-events: none;
+  }
+  @media (max-width: 850px) {
+    #scheme-panel { top: auto; bottom: 8px; right: 8px; width: min(245px, calc(100% - 16px)); max-height: 34dvh; }
+    body:has(#scheme-panel:not([hidden])) model-viewer { height: 64dvh; }
+  }
   @media (max-width: 600px) {
     #components { width: 150px; font-size: 11px; top: 5px; left: 5px; padding: 5px; }
     #components button { padding: 4px 5px; }
@@ -107,6 +149,13 @@
 <body>
 <model-viewer id="model" camera-controls animation-name="Explore" shadow-intensity=".95" shadow-softness=".85" exposure="1.12" tone-mapping="neutral" interaction-prompt="none" camera-orbit="24deg 82deg 4.75m" camera-target="0m 1.06m .05m" field-of-view="37deg" min-camera-orbit="auto 30deg 0.36m" max-camera-orbit="auto 110deg 6m" alt="Сенсорлы экраны бар, іші азық-түлікке толы күміс тоңазытқыш">
 <button type="button" slot="hotspot-display" data-position=".264m 1.431m .53m" data-normal="0m 0m 1m" data-visibility-attribute="visible" class="pin" id="screen-pin" title="Экранды ашу" aria-label="Сенсорлы экран мәзірін ашу">+</button>
+<span slot="hotspot-door-sensor" data-position=".44m 1.93m .33m" class="scheme-marker" data-scheme-marker="food" aria-hidden="true" hidden>1</span>
+<span slot="hotspot-camera" data-position=".226m 1.88m -.147m" class="scheme-marker" data-scheme-marker="food" aria-hidden="true" hidden>2</span>
+<span slot="hotspot-food-module" data-position="-.27m 2.025m .33m" class="scheme-marker" data-scheme-marker="food" aria-hidden="true" hidden>3</span>
+<span slot="hotspot-temperature-fridge" data-position=".40m 1.37m -.16m" class="scheme-marker" data-scheme-marker="cooling" aria-hidden="true" hidden>1</span>
+<span slot="hotspot-temperature-freezer" data-position=".37m .47m .29m" class="scheme-marker" data-scheme-marker="cooling" aria-hidden="true" hidden>1</span>
+<span slot="hotspot-cooling-controller" data-position="-.35m 2.025m .33m" class="scheme-marker" data-scheme-marker="cooling" aria-hidden="true" hidden>2</span>
+<span slot="hotspot-compressor" data-position="0m .105m .34m" class="scheme-marker" data-scheme-marker="cooling" aria-hidden="true" hidden>3</span>
 </model-viewer>
 <aside id="components" aria-labelledby="title">
   <h1 id="title">Ақылды тоңазытқыш</h1>
@@ -119,7 +168,17 @@
   </nav>
   <button type="button" id="toggle-door">Есікті ашу</button>
   <button type="button" id="show-stock" hidden>Экран мәзірі</button>
+  <section id="schemes" aria-labelledby="schemes-title">
+    <h2 id="schemes-title">Ішкі сұлбалар</h2>
+    <button type="button" data-scheme="food" aria-pressed="false" aria-controls="scheme-panel">Азық-түлікті бақылау</button>
+    <button type="button" data-scheme="cooling" aria-pressed="false" aria-controls="scheme-panel">Салқындату жүйесі</button>
+  </section>
 </aside>
+<section id="scheme-panel" aria-labelledby="scheme-title" hidden>
+  <header><h2 id="scheme-title"></h2><button type="button" id="close-scheme" aria-label="Сұлбаны жабу">Жабу</button></header>
+  <ol id="scheme-flow"></ol>
+  <p>Бөлшектердің орны сұлбада шартты түрде көрсетілген.</p>
+</section>
 <p id="status" role="status">3D модель жүктелуде…</p>
 <dialog id="inventory">
 <div class="dialog-head"><h2>Азық-түлік қоры</h2><form method="dialog"><button class="action">Жабу</button></form></div>
@@ -1231,16 +1290,53 @@ const menu = document.querySelector('#show-stock');
 const pin = document.querySelector('#screen-pin');
 const dialog = document.querySelector('#inventory');
 const buttons = [...document.querySelectorAll('.view')];
+const schemeButtons = [...document.querySelectorAll('[data-scheme]')];
+const markers = [...model.querySelectorAll('[data-scheme-marker]')];
+const schemePanel = document.querySelector('#scheme-panel');
+const schemeTitle = document.querySelector('#scheme-title');
+const schemeFlow = document.querySelector('#scheme-flow');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const views = {
   whole: { target:'0m 1.06m .05m', orbit:'24deg 82deg 4.75m', time:0 },
   display: { target:'.124m 1.575m .51m', orbit:'8deg 87deg 1.4m', time:0 },
   interior: { target:'-.15m 1.26m .11m', orbit:'21deg 83deg 2.8m', time:2 },
   sensor: { target:'.222m 1.80m -.05m', orbit:'-5deg 87deg 1.42m', time:2 },
-  freezer: { target:'0m .37m .50m', orbit:'16deg 49deg 2.05m', time:4 }
+  freezer: { target:'0m .37m .50m', orbit:'16deg 49deg 2.05m', time:4 },
+  food: { target:'-.20m 1.14m .14m', orbit:'11deg 82deg 5m', time:2 },
+  cooling: { target:'-.19m 1.07m .24m', orbit:'13deg 78deg 5m', time:4 }
+};
+const schemes = {
+  food: [
+    ['1. Есік датчигі', 'Есіктің жабылғанын анықтайды.'],
+    ['2. Камера мен жарық', 'Жарық жанып тұрғанда камера сөрелерді суретке түсіреді.'],
+    ['3. Есептеу модулі', 'Суретті талдап, қор тізімін жаңартуды ұсынады.'],
+    ['Сенсорлы экран', 'Қорды көрсетеді және оны қолмен түзетуге мүмкіндік береді.']
+  ],
+  cooling: [
+    ['1. Температура датчиктері', 'Екі бөлімдегі температураны өлшейді.'],
+    ['2. Салқындату контроллері', 'Өлшемдерді белгіленген мәндермен салыстырады.'],
+    ['3. Компрессор', 'Контроллер пәрменіне сай салқындатқыш затты айналдырады.'],
+    ['Жылу алмасу', 'Буландырғыш іштен жылуды сіңіреді, конденсатор оны сыртқа шығарады.']
+  ]
 };
 let frame = 0;
 let animationTarget = 0;
+let activeScheme = null;
+function displayScheme(key) {
+  activeScheme = key;
+  schemePanel.hidden = !key;
+  for (const button of schemeButtons) button.setAttribute('aria-pressed', String(button.dataset.scheme === key));
+  for (const marker of markers) marker.hidden = marker.dataset.schemeMarker !== key;
+  if (!key) return;
+  schemeTitle.textContent = schemeButtons.find(button => button.dataset.scheme === key).textContent;
+  schemeFlow.replaceChildren(...schemes[key].map(([title, description]) => {
+    const item = document.createElement('li');
+    const label = document.createElement('strong');
+    label.textContent = title;
+    item.append(label, description);
+    return item;
+  }));
+}
 function select(key, openOverview = false) {
   const view = views[key];
   animationTarget = openOverview ? 2 : view.time;
@@ -1250,6 +1346,7 @@ function select(key, openOverview = false) {
   pin.hidden = animationTarget > 0;
   toggle.textContent = animationTarget ? 'Есікті жабу' : 'Есікті ашу';
   for(const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.view === key));
+  displayScheme(Object.hasOwn(schemes, key) ? key : null);
   animate();
 }
 function animate() {
@@ -1272,6 +1369,16 @@ function animate() {
   frame = requestAnimationFrame(tick);
 }
 for(const button of buttons) button.addEventListener('click', () => select(button.dataset.view));
+for(const button of schemeButtons) button.addEventListener('click', () => {
+  const key = button.dataset.scheme;
+  if (key === activeScheme) select('interior');
+  else select(key);
+});
+document.querySelector('#close-scheme').addEventListener('click', () => {
+  const trigger = schemeButtons.find(button => button.dataset.scheme === activeScheme);
+  select('interior');
+  trigger?.focus();
+});
 toggle.addEventListener('click', () => select('whole', animationTarget === 0));
 for(const button of [pin, menu]) button.addEventListener('click', () => dialog.showModal());
 model.addEventListener('load', () => {
